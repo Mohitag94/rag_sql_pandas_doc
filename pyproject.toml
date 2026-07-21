@@ -1,0 +1,12 @@
+[project]
+name = "rag-sql-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "llama-index-core>=0.14.23",
+    "llama-index-embeddings-huggingface>=0.7.0",
+    "llama-index-llms-huggingface-api>=0.7.0",
+    "python-dotenv>=1.2.2",
+]
