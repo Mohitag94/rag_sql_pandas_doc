@@ -1,8 +1,9 @@
 """
 Load the pandas documents and build a FAISS-backed index
-                                                                                                                                - Tokenzier & Embedding Model: BAAI/bge-small-en-v1.5
-                                                                                                                                - Chunk Size: 450 (under model's 512-token hard limit)
-                                                                                                                                - Vector Storage Backend: FAISS
+and store in the local disk.
+- Tokenzier & Embedding Model: BAAI/bge-small-en-v1.5
+- Chunk Size: 450 (under model's 512-token hard limit)
+- Vector Storage Backend: FAIS
 """
 
 # loading requires packages...
@@ -24,7 +25,25 @@ from transformers import AutoTokenizer
 
 
 class IndexBuilder:
+    """
+    Builds and persists a FAISS-backed vector index from the pandas
+    documentation .rst files.
+
+    Attributes:
+                documents: Loaded Document objects, set by .load().
+                index: The built VectorStoreIndex, set by .index_build().
+    """
+
     def __init__(self, embed_dim=384):
+        """
+        Set up paths and configure the global tokenizer, embedding model,
+        and chunk size before any documents are loaded or indexed.
+
+        Args:
+                        embed_dim: Output dimension of the embedding model. Must match
+                        BAAI/bge-small-en-v1.5's actual output size (384) or FAISS
+                        will raise a dimension-mismatch error.
+        """
         # parent/root directory
         self.ROOT_DIR = Path(__file__).resolve().parent
         # data directory
@@ -45,7 +64,12 @@ class IndexBuilder:
         Settings.chunk_overlap = 50
 
     def load(self):
-        """Load .rst documents from the disk."""
+        """
+        Load .rst documents from the disk.
+
+        Returns:
+            The list of loaded Document objects.
+        """
 
         print("[INFO] Loading Documents...")
         self.documents = SimpleDirectoryReader(
@@ -56,7 +80,15 @@ class IndexBuilder:
         return self.documents
 
     def index_build(self):
-        """VectorStoreIndex call for chuck, embedding & storage via FAISS"""
+        """
+        Single VectorStoreIndex call for chuck, embedding & storage via FAISS
+
+        Returns:
+                The built VectorStoreIndex.
+
+        Raises:
+                ValueError: If .load() hasn't been called yet.
+        """
 
         if self.documents is None:
             raise ValueError("No documents loaded — call .load() first.")
@@ -74,7 +106,12 @@ class IndexBuilder:
         return self.index
 
     def persist(self):
-        """save the built index to disk so it doesn't need rebuilding every run"""
+        """
+        Save the built index to disk so it doesn't need rebuilding every run
+
+        Raises:
+                ValueError: If .index_build() hasn't been called yet.
+        """
         if self.index is None:
             raise ValueError("No index built — call .build_index() first.")
 
