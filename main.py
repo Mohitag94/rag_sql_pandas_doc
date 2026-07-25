@@ -1,7 +1,7 @@
 """
 Load the pandas documents and build a FAISS-backed index
 and store in the local disk.
-- Tokenzier & Embedding Model: BAAI/bge-small-en-v1.5
+- Tokensier & Embedding Model: BAAI/bge-small-en-v1.5
 - Chunk Size: 450 (under model's 512-token hard limit)
 - Vector Storage Backend: FAIS
 """
