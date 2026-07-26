@@ -6,11 +6,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "faiss-cpu>=1.14.3",
+    "huggingface-hub[cli]>=1.24.0",
     "ipywidgets>=8.1.8",
     "llama-index-core>=0.14.23",
     "llama-index-embeddings-huggingface>=0.7.0",
     "llama-index-llms-huggingface-api>=0.7.0",
     "llama-index-vector-stores-faiss>=0.6.0",
+    "psycopg[binary]>=3.3.4",
     "python-dotenv>=1.2.2",
     "transformers>=5.14.1",
 ]
