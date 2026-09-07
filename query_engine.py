@@ -44,4 +44,9 @@ class IndexLoader:
         self._load_index()
 
     def _load_index(self):
+        return
+
+class QueryEngine:
+
+    def __init__():
         
