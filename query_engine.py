@@ -120,3 +120,10 @@ class QueryEngine:
             "chuck_ids": chunk_ids,
             "latency_ms": latency_ms,
         }
+
+
+if __name__ == "__main__":
+    loader = IndexLoader()
+    engine = QueryEngine(loader.index)
+    result = engine.ask("How do I merge two dataframes?")
+    print(result)
