@@ -7,11 +7,6 @@ log every query to the Neon query_log table.
 """
 
 # loading requires packages...
-<<<<<<< HEAD
-
-
-# from dotenv import load_dotenv
-=======
 import os
 import time
 from pathlib import Path
@@ -132,4 +127,3 @@ if __name__ == "__main__":
     engine = QueryEngine(loader.index)
     result = engine.ask("How do I merge two dataframes?")
     print(result)
->>>>>>> main

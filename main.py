@@ -7,9 +7,12 @@ and store in the local disk.
 """
 
 # loading requires packages...
+import os
 from pathlib import Path
 
 import faiss
+import psycopg
+from dotenv import load_dotenv
 from llama_index.core import (
     SimpleDirectoryReader,
     StorageContext,
@@ -26,8 +29,8 @@ class IndexBuilder:
     documentation .rst files.
 
     Attributes:
-                documents: Loaded Document objects, set by .load().
-                index: The built VectorStoreIndex, set by .index_build().
+                                                                                                    documents: Loaded Document objects, set by .load().
+                                                                                                    index: The built VectorStoreIndex, set by .index_build().
     """
 
     def __init__(self, embed_dim=EMBED_DIM):
@@ -36,9 +39,9 @@ class IndexBuilder:
         and chunk size before any documents are loaded or indexed.
 
         Args:
-                        embed_dim: Output dimension of the embedding model. Must match
-                        BAAI/bge-small-en-v1.5's actual output size (384) or FAISS
-                        will raise a dimension-mismatch error.
+                                                                                                                                        embed_dim: Output dimension of the embedding model. Must match
+                                                                                                                                        BAAI/bge-small-en-v1.5's actual output size (384) or FAISS
+                                                                                                                                        will raise a dimension-mismatch error.
         """
         # parent/root directory
         self.ROOT_DIR = Path(__file__).resolve().parent
@@ -60,7 +63,7 @@ class IndexBuilder:
         Load .rst documents from the disk.
 
         Returns:
-                        The list of loaded Document objects.
+                                                                                                                                        The list of loaded Document objects.
         """
 
         print("[INFO] Loading Documents...")
@@ -71,15 +74,45 @@ class IndexBuilder:
 
         return self.documents
 
+    def record_metadata(self):
+        """
+        Insert document name per row into document_metadata, recording
+        what's in the corpus and time of indexing.
+        """
+        if self.documents is None:
+            raise ValueError("No documents loaded — call .load() first.")
+
+        load_dotenv()
+        conn_string = os.getenv("DATABASE_URL")
+        # transform source set into a list of tuples
+        sources_payload = [
+            (doc.metadata.get("file_name"), "pandas-user-guide")
+            for doc in self.documents
+        ]
+
+        # inserting the metadata in the document_metadata table
+        with psycopg.connect(conn_string) as conn, conn.cursor() as cur:
+            # executemany loops through the list natively at database level
+            cur.executemany(
+                """
+                    INSERT INTO rag_app.document_metadata (source, category) 
+                    VALUES (%s, %s)
+                    ON CONFLICT (source)
+					DO UPDATE date_added = NOW();
+                    """,
+                sources_payload,
+            )
+            conn.commit()
+
     def index_build(self):
         """
         Single VectorStoreIndex call for chuck, embedding & storage via FAISS
 
         Returns:
-                        The built VectorStoreIndex.
+                                                                                                                                        The built VectorStoreIndex.
 
         Raises:
-                        ValueError: If .load() hasn't been called yet.
+                                                                                                                                        ValueError: If .load() hasn't been called yet.
         """
 
         if self.documents is None:
@@ -102,7 +135,7 @@ class IndexBuilder:
         Save the built index to disk so it doesn't need rebuilding every run
 
         Raises:
-                        ValueError: If .index_build() hasn't been called yet.
+                                                                                                                                        ValueError: If .index_build() hasn't been called yet.
         """
         if self.index is None:
             raise ValueError("No index built — call .build_index() first.")
@@ -116,5 +149,6 @@ if __name__ == "__main__":
     # load_dotenv()
     builder = IndexBuilder()
     builder.load()
+    builder.record_metadata()
     builder.index_build()
     builder.persist()
