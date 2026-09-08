@@ -3,7 +3,7 @@ Load the presisted FAISS index and answer question aganist it,
 log every query to the Neon query_log table.
 - LLM: meta-llama/Llama-3.1-8B-Instruct via HF Inference API
 - Logging: every call to .query() writes a row to query_log
-        (question, retrieved chunk ids, confidence, latency, error)
+                (question, retrieved chunk ids, confidence, latency, error)
 """
 
 # loading requires packages...
@@ -26,7 +26,7 @@ class IndexLoader:
     Loads a custome build FAISS-based vector index from disk.
 
     Attributes:
-        index: the loaded VectorStoreIndex
+            index: the loaded VectorStoreIndex
     """
 
     def __init__(self, embed_dim=EMBED_DIM):
@@ -35,8 +35,8 @@ class IndexLoader:
         then loads the presist index.
 
         Agrs:
-            embed_dim: Output dimension of the embedding model. Unused
-            by loading itself, kept for consistency with IndexBuilder.
+                embed_dim: Output dimension of the embedding model. Unused
+                by loading itself, kept for consistency with IndexBuilder.
         """
         # parent/root directory
         self.ROOT_DIR = Path(__file__).resolve().parent
@@ -56,7 +56,7 @@ class IndexLoader:
         Loads the presisted FAISS-backed index from local disk.
 
         Return:
-            index: the loaded VectorStoreIndex.
+                index: the loaded VectorStoreIndex.
         """
         # loading the index from the local storage
         vector_store = FaissVectorStore.from_persist_dir(self.PERSIST_DIR)
@@ -72,7 +72,7 @@ class QueryEngine:
     against it, returns the answer alone with metadata.
 
     Attributes:
-        query_engine: the LlamaIndex query engine.
+            query_engine: the LlamaIndex query engine.
     """
 
     def __init__(self, index):
@@ -81,7 +81,7 @@ class QueryEngine:
         buils the query engine from the loaded index.
 
         Agrs:
-            index: the loaded VectorStoreIndex.
+                index: the loaded VectorStoreIndex.
         """
         # llm configuration
         load_dotenv()
@@ -96,30 +96,43 @@ class QueryEngine:
         extracting retrieval metadata alongside the answer.
 
         Agrs:
-            question: the query to be answered.
+                question: the query to be answered.
 
         Returns:
-            a dict with keys: answer, confidence, chunk_ids, latency_ms.
+                a dict with keys: answer, confidence, chunk_ids, latency_ms.
         """
-        # generating an answer with build query engine
-        start = time.perf_counter()
-        response = self.query_engine.query(question)
-        latency_ms = int((time.perf_counter() - start) * 1000)
-
-        # getting the top confidence score
-        confidence = None
-        if response.source_nodes:
-            confidence = response.source_nodes[0].score
-
-        # getting the chuck ids of the respons
-        chunk_ids = [node.node_id for node in response.source_nodes]
-
-        return {
-            "answer": response.response,
-            "confidence": confidence,
-            "chuck_ids": chunk_ids,
-            "latency_ms": latency_ms,
+        # single dict container for entire lifecycle
+        result = {
+            "query_text": question,
+            "answer": None,
+            "retrieved_chunk_ids": [],
+            "confidence_score": None,
+            "latency_ms": 0,
+            "error": None,
         }
+        start = time.perf_counter()
+
+        try:
+            # run rag query engine with the question
+            response = self.query_engine.query(question)
+            result["answer"] = response.response
+            if response.source_nodes:
+                # get the top confidence score
+                result["confidence_score"] = response.source_nodes[0].score
+                # get the chucks id
+                result["retrieved_chunk_ids"] = [
+                    str(node.node.node_id) for node in response.source_nodes
+                ]
+
+        except Exception as e:  # noqa: BLE001
+            # capture the error
+            result["error"] = str(e)
+            result["answer"] = "Error Occurred!!!"
+
+        finally:
+            result["latency_ms"] = int((time.perf_counter() - start) * 1000)
+
+        return result
 
 
 if __name__ == "__main__":

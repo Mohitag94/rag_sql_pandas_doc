@@ -101,7 +101,7 @@ class IndexBuilder:
                     INSERT INTO rag_app.document_metadata (source, category) 
                     VALUES (%s, %s)
                     ON CONFLICT (source)
-					DO UPDATE date_added = NOW();
+					DO UPDATE SET date_added = NOW();
                     """,
                 sources_payload,
             )
