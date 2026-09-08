@@ -14,7 +14,7 @@ CREATE SCHEMA IF NOT EXISTS rag_app;
 CREATE_METADATA_TABLE = """
 CREATE TABLE IF NOT EXISTS rag_app.document_metadata (
 	id SERIAL PRIMARY KEY,
-	source TEXT NOT NULL,
+	source TEXT UNIQUE NOT NULL,
 	date_added TIMESTAMP DEFAULT NOW(),
 	category TEXT
 );

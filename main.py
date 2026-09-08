@@ -7,9 +7,12 @@ and store in the local disk.
 """
 
 # loading requires packages...
+import os
 from pathlib import Path
 
 import faiss
+import psycopg
+from dotenv import load_dotenv
 from llama_index.core import (
     SimpleDirectoryReader,
     StorageContext,
@@ -71,6 +74,39 @@ class IndexBuilder:
 
         return self.documents
 
+    def record_metadata(self):
+        """
+        Insert document name per row into document_metadata, recording
+        what's in the corpus and time of indexing.
+
+                Raises:
+                        ValueError: If .index_build() hasn't been called yet.
+        """
+        if self.documents is None:
+            raise ValueError("No documents loaded — call .load() first.")
+
+        load_dotenv()
+        conn_string = os.getenv("DATABASE_URL")
+        # transform source set into a list of tuples
+        sources_payload = [
+            (doc.metadata.get("file_name"), "pandas-user-guide")
+            for doc in self.documents
+        ]
+
+        # inserting the metadata in the document_metadata table
+        with psycopg.connect(conn_string) as conn, conn.cursor() as cur:
+            # executemany loops through the list natively at database level
+            cur.executemany(
+                """
+                    INSERT INTO rag_app.document_metadata (source, category) 
+                    VALUES (%s, %s)
+                    ON CONFLICT (source)
+					DO UPDATE date_added = NOW();
+                    """,
+                sources_payload,
+            )
+            conn.commit()
+
     def index_build(self):
         """
         Single VectorStoreIndex call for chuck, embedding & storage via FAISS
@@ -116,5 +152,6 @@ if __name__ == "__main__":
     # load_dotenv()
     builder = IndexBuilder()
     builder.load()
+    builder.record_metadata()
     builder.index_build()
     builder.persist()
