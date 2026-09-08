@@ -11,17 +11,13 @@ from pathlib import Path
 
 import faiss
 from llama_index.core import (
-    Settings,
     SimpleDirectoryReader,
     StorageContext,
     VectorStoreIndex,
-    set_global_tokenizer,
 )
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.vector_stores.faiss import FaissVectorStore
 
-# from dotenv import load_dotenv
-from transformers import AutoTokenizer
+from config import EMBED_DIM, config_chuck, config_embedding_tokenizer
 
 
 class IndexBuilder:
@@ -34,7 +30,7 @@ class IndexBuilder:
                 index: The built VectorStoreIndex, set by .index_build().
     """
 
-    def __init__(self, embed_dim=384):
+    def __init__(self, embed_dim=EMBED_DIM):
         """
         Set up paths and configure the global tokenizer, embedding model,
         and chunk size before any documents are loaded or indexed.
@@ -56,19 +52,15 @@ class IndexBuilder:
         self.index = None
 
         # configure tokensier & embedding model + chunk size & overlap
-        set_global_tokenizer(
-            AutoTokenizer.from_pretrained("BAAI/bge-small-en-v1.5").encode
-        )
-        Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
-        Settings.chunk_size = 450
-        Settings.chunk_overlap = 50
+        config_embedding_tokenizer()
+        config_chuck()
 
     def load(self):
         """
         Load .rst documents from the disk.
 
         Returns:
-            The list of loaded Document objects.
+                        The list of loaded Document objects.
         """
 
         print("[INFO] Loading Documents...")
@@ -84,10 +76,10 @@ class IndexBuilder:
         Single VectorStoreIndex call for chuck, embedding & storage via FAISS
 
         Returns:
-                The built VectorStoreIndex.
+                        The built VectorStoreIndex.
 
         Raises:
-                ValueError: If .load() hasn't been called yet.
+                        ValueError: If .load() hasn't been called yet.
         """
 
         if self.documents is None:
@@ -110,7 +102,7 @@ class IndexBuilder:
         Save the built index to disk so it doesn't need rebuilding every run
 
         Raises:
-                ValueError: If .index_build() hasn't been called yet.
+                        ValueError: If .index_build() hasn't been called yet.
         """
         if self.index is None:
             raise ValueError("No index built — call .build_index() first.")
