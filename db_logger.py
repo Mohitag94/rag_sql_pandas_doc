@@ -41,7 +41,8 @@ def query_logger(result: dict):
         cur.execute(
             """
 			INSERT INTO raq_app.query_log 
-			(query_text, answer, retrieved_chunk_ids, retrieved_chunk_text, confidence_score, latency_ms, error)
+			(query_text, answer, retrieved_chunk_ids, 
+			retrieved_chunk_text, confidence_score, latency_ms, error)
 			VALUES (%s, %s, %s, %s, %s, %s, %s)
 			""",
             (
@@ -90,12 +91,38 @@ def fetch_unevaluated(limit=15):
         return cur.fetchall()
 
 
-def eval_logger(result: dict):
+def eval_logger(results: list[dict]):
     """
     Records evaluation per query in a batch.
 
     Args:
-                result: dict with keys query_text, retrieved_chunk_ids,
-                confidence_score, latency_ms, error (answer is ignored —
-                not stored in query_log).
+            result: list of dicts, each with keys query_log_id,
+            faithfulness_passing, faithfulness_feedback, relevancy_passing,
+            relevancy_feedback — the exact shape BatchEvaluator.run() returns.
     """
+
+    if not results:
+        return
+
+    conn_string = os.getenv("DATABASE_URL")
+    if not conn_string:
+        raise ValueError("DATABASE_URL environment variable is missing!")
+
+    with psycopg.connect(conn_string) as conn, conn.cursor() as cur:
+        cur.executemany(
+            """
+			INSERT INTO rag_app.rag_eval 
+				(query_log_id, 
+				faithfulness_passing, 
+				faithfulness_feedback,
+				relevancy_passing, 
+				relevancy_feedback) 
+				VALUES (%(query_log_id)s, 
+						%(faithfulness_passing)s, 
+						%(faithfulness_feedback)s,
+						%(relevancy_passing)s, 
+						%(relevancy_feedback)s)
+			""",
+            results,
+        )
+        conn.commit()

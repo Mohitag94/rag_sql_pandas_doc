@@ -35,4 +35,32 @@ class BatchEval:
 
     def eval(self):
         rows = fetch_unevaluated()
-        return {}
+        if not rows:
+            print("[INTO] No unevaluated rows fetched")
+            return []
+
+        row_ids = [r[0] for r in rows]
+        queries = [r[1] for r in rows]
+        answer = [r[2] for r in rows]
+        contexts_list = [r[3].split(CHUNK_DELIMITER) if r[3] else [] for r in rows]
+        eval_resutl = self.runner.evaluate_response_strs(
+            queries=queries, response_strs=answer, contexts_list=contexts_list
+        )
+
+        faith_results = eval_resutl["faithfulness"]
+        relevancy_results = eval_resutl["relevancy"]
+
+        results = [
+            {
+                "query_log_id": row_id,
+                "faithfulness_passing": faith.passing,
+                "faithfulness_feedback": faith.feedback,
+                "relevancy_passing": relevancy.passing,
+                "relevancy_feedback": relevancy.feedback,
+            }
+            for row_id, faith, relevancy in zip(
+                row_ids, faith_results, relevancy_results
+            )
+        ]
+
+        return results
