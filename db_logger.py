@@ -16,9 +16,9 @@ def query_logger(result: dict):
     Records response into the table per question.
 
     Args:
-            result: dict with keys query_text, retrieved_chunk_ids,
-                    confidence_score, latency_ms, error (answer is ignored —
-                    not stored in query_log).
+                result: dict with keys query_text, retrieved_chunk_ids,
+                confidence_score, latency_ms, error (answer is ignored —
+                not stored in query_log).
     """
     conn_string = os.getenv("DATABASE_URL")
     if not conn_string:
@@ -55,3 +55,47 @@ def query_logger(result: dict):
             ),
         )
         conn.commit()
+
+
+def fetch_unevaluated(limit=15):
+    """
+    Fetch unevaluated rows from query_log oldest first, excluding
+    rows where the response failed.
+
+    Args:
+                limit: max number of rows to be fetched.
+
+    Return:
+                a list of tuple: (id, query_test, question, retrieved_chuck_texts)
+    """
+
+    conn_string = os.getenv("DATABASE_URL")
+    if not conn_string:
+        raise ValueError("DATABASE_URL environment variable is missing!")
+
+    with psycopg.connect(conn_string) as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+			SELECT q1.id, q1.query_text, q1.answer, q1.retrieved_chunk_texts 
+			FROM rag_app.query_log q1
+			WHERE q1.error IS NULL 
+			AND NOT EXISTS (
+				SELECT 1 FROM rag_app.rag_eval er WHERE er.query_log_id = q1.id
+				)
+			ORDER BT q1.id
+			LIMIT %s
+			""",
+            (limit,),
+        )
+        return cur.fetchall()
+
+
+def eval_logger(result: dict):
+    """
+    Records evaluation per query in a batch.
+
+    Args:
+                result: dict with keys query_text, retrieved_chunk_ids,
+                confidence_score, latency_ms, error (answer is ignored —
+                not stored in query_log).
+    """
