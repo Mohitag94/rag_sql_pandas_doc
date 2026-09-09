@@ -60,7 +60,7 @@ def main():
             cur.execute(CREATE_QUERY_LOG_TABLE)
             cur.execute(CREATE_RAG_EVAL_TABLE)
         conn.commit()
-    print("Schema 'rag_app' and both tables created (or already existed).")
+    print("[INFO] Schema 'rag_app' and all three tables created (or already existed).")
 
 
 if __name__ == "__main__":

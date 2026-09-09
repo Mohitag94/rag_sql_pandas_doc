@@ -117,7 +117,7 @@ class QueryEngine:
             # run rag query engine with the question
             response = self.query_engine.query(question)
             # raw response to handle rag eval
-            result["answer"] = response
+            result["answer"] = response.response
             if response.source_nodes:
                 # get the top confidence score
                 result["confidence_score"] = response.source_nodes[0].score

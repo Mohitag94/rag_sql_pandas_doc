@@ -1,3 +1,7 @@
+"""
+Evaluate un-evaluated query_log rows for faithfulness and relevancy.
+"""
+
 import os
 
 import nest_asyncio
@@ -12,15 +16,13 @@ from llama_index.core.evaluation import (
 from config import config_llm
 from db_logger import fetch_unevaluated
 
-nest_asyncio.apply()
+# nest_asyncio.apply()
 
 CHUNK_DELIMITER = "\n--CHUNK--\n"
 
 
 class BatchEval:
-    def __init__(
-        self,
-    ):
+    def __init__(self):
         load_dotenv()
         hf_token = os.getenv("HF_TOKEN")
         config_llm(hf_token)
@@ -34,6 +36,8 @@ class BatchEval:
         )
 
     def eval(self):
+        nest_asyncio.apply()
+
         rows = fetch_unevaluated()
         if not rows:
             print("[INTO] No unevaluated rows fetched")
@@ -62,5 +66,5 @@ class BatchEval:
                 row_ids, faith_results, relevancy_results
             )
         ]
-
+        # print(results)
         return results

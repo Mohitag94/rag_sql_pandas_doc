@@ -40,14 +40,14 @@ def query_logger(result: dict):
     with psycopg.connect(conn_string) as conn, conn.cursor() as cur:
         cur.execute(
             """
-			INSERT INTO raq_app.query_log 
+			INSERT INTO rag_app.query_log 
 			(query_text, answer, retrieved_chunk_ids, 
-			retrieved_chunk_text, confidence_score, latency_ms, error)
+			retrieved_chunk_texts, confidence_score, latency_ms, error)
 			VALUES (%s, %s, %s, %s, %s, %s, %s)
 			""",
             (
                 result["query_text"],
-                result["answer"].response,
+                result["answer"],
                 chunk_ids_str,
                 chunk_texts_str,
                 result["confidence_score"],
@@ -83,7 +83,7 @@ def fetch_unevaluated(limit=15):
 			AND NOT EXISTS (
 				SELECT 1 FROM rag_app.rag_eval er WHERE er.query_log_id = q1.id
 				)
-			ORDER BT q1.id
+			ORDER BY q1.id
 			LIMIT %s
 			""",
             (limit,),
