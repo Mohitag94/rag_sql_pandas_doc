@@ -106,6 +106,7 @@ class QueryEngine:
             "query_text": question,
             "answer": None,
             "retrieved_chunk_ids": [],
+            "retrieved_chunk_texts": [],
             "confidence_score": None,
             "latency_ms": 0,
             "error": None,
@@ -115,7 +116,8 @@ class QueryEngine:
         try:
             # run rag query engine with the question
             response = self.query_engine.query(question)
-            result["answer"] = response.response
+            # raw response to handle rag eval
+            result["answer"] = response
             if response.source_nodes:
                 # get the top confidence score
                 result["confidence_score"] = response.source_nodes[0].score
@@ -123,11 +125,14 @@ class QueryEngine:
                 result["retrieved_chunk_ids"] = [
                     str(node.node.node_id) for node in response.source_nodes
                 ]
+                # get the chucks texts
+                result["retrieved_chunk_texts"] = [
+                    str(node.node.text) for node in response.source_nodes
+                ]
 
         except Exception as e:  # noqa: BLE001
             # capture the error
             result["error"] = str(e)
-            result["answer"] = "Error Occurred!!!"
 
         finally:
             result["latency_ms"] = int((time.perf_counter() - start) * 1000)
