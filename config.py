@@ -28,9 +28,6 @@ def config_embedding_tokenizer():
     load_dotenv()
     #  configure tokensier & embedding model
     set_global_tokenizer(AutoTokenizer.from_pretrained(EMBED_MODEL_NAME).encode)
-    # Settings.embed_model = HuggingFaceInferenceAPIEmbedding(
-    #     model_name=EMBED_MODEL_NAME, token=os.getenv("HF_TOKEN")
-    # )
     Settings.embed_model = HuggingFaceEmbedding(model_name=EMBED_MODEL_NAME)
 
 

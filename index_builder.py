@@ -122,11 +122,6 @@ class IndexBuilder:
             raise ValueError("No documents loaded — call .load() first.")
 
         print("[INFO] Indexing Documents...")
-        # from llama_index.core.node_parser import SentenceSplitter
-        # text_splitter = SentenceSplitter(
-        #     chunk_size=450,
-        #     chunk_overlap=50
-        # )
         faiss_index = faiss.IndexFlatL2(self.embed_dim)
         vector_store = FaissVectorStore(faiss_index=faiss_index)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
