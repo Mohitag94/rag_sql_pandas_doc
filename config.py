@@ -14,21 +14,25 @@ def config_embedding_tokenizer():
     Set the global tokenizer and embedding models
     used to create/load RAG model.
 
-                    Args:
-                    hf_token: huggingface token for llm
+                                                                    Args:
+                                                                    hf_token: huggingface token for llm
     """
+    import os
 
     from dotenv import load_dotenv
     from llama_index.core import Settings, set_global_tokenizer
-
-    # from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
-    from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+    from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
     from transformers import AutoTokenizer
 
     load_dotenv()
     #  configure tokensier & embedding model
     set_global_tokenizer(AutoTokenizer.from_pretrained(EMBED_MODEL_NAME).encode)
-    Settings.embed_model = HuggingFaceEmbedding(model_name=EMBED_MODEL_NAME)
+    # Settings.embed_model = HuggingFaceEmbedding(model_name=EMBED_MODEL_NAME)
+
+    Settings.embed_model = HuggingFaceInferenceAPIEmbedding(
+        model_name="BAAI/bge-small-en-v1.5",
+        token=os.getenv("HF_TOKEN"),
+    )
 
 
 def config_chuck():
@@ -48,7 +52,7 @@ def config_llm(hf_token):
     Set the generation llm for respone to the query.
 
     Args:
-                    hf_token: huggingface token for llm
+                                                                    hf_token: huggingface token for llm
     """
 
     from llama_index.core import Settings
