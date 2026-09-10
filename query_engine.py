@@ -3,7 +3,7 @@ Load the presisted FAISS index and answer question aganist it,
 log every query to the Neon query_log table.
 - LLM: meta-llama/Llama-3.1-8B-Instruct via HF Inference API
 - Logging: every call to .query() writes a row to query_log
-                (question, retrieved chunk ids, confidence, latency, error)
+                                (question, retrieved chunk ids, confidence, latency, error)
 """
 
 # load requires packages...
@@ -16,6 +16,8 @@ from llama_index.core import (
     StorageContext,
     load_index_from_storage,
 )
+from llama_index.core.storage.docstore import SimpleDocumentStore
+from llama_index.core.storage.index_store import SimpleIndexStore
 from llama_index.vector_stores.faiss import FaissVectorStore
 
 from config import EMBED_DIM, config_embedding_tokenizer, config_llm
@@ -26,7 +28,7 @@ class IndexLoader:
     Loads a custome build FAISS-based vector index from disk.
 
     Attributes:
-            index: the loaded VectorStoreIndex
+                    index: the loaded VectorStoreIndex
     """
 
     def __init__(self, embed_dim=EMBED_DIM):
@@ -35,8 +37,8 @@ class IndexLoader:
         then loads the presist index.
 
         Agrs:
-                embed_dim: Output dimension of the embedding model. Unused
-                by loading itself, kept for consistency with IndexBuilder.
+                        embed_dim: Output dimension of the embedding model. Unused
+                        by loading itself, kept for consistency with IndexBuilder.
         """
         # parent/root directory
         self.ROOT_DIR = Path(__file__).resolve().parent
@@ -56,12 +58,18 @@ class IndexLoader:
         Loads the presisted FAISS-backed index from local disk.
 
         Return:
-                index: the loaded VectorStoreIndex.
+                        index: the loaded VectorStoreIndex.
         """
         # loading the index from the local storage
         vector_store = FaissVectorStore.from_persist_dir(self.PERSIST_DIR)
+        # storage_context = StorageContext.from_defaults(
+        #     persist_dir=self.PERSIST_DIR, vector_store=vector_store
+        # )
         storage_context = StorageContext.from_defaults(
-            persist_dir=self.PERSIST_DIR, vector_store=vector_store
+            persist_dir=self.PERSIST_DIR,
+            vector_store=vector_store,
+            docstore=SimpleDocumentStore.from_persist_dir(persist_dir=self.PERSIST_DIR),
+            index_store=SimpleIndexStore.from_persist_dir(persist_dir=self.PERSIST_DIR),
         )
         self.index = load_index_from_storage(storage_context)
 
@@ -72,7 +80,7 @@ class QueryEngine:
     against it, returns the answer alone with metadata.
 
     Attributes:
-            query_engine: the LlamaIndex query engine.
+                    query_engine: the LlamaIndex query engine.
     """
 
     def __init__(self, index):
@@ -81,7 +89,7 @@ class QueryEngine:
         buils the query engine from the loaded index.
 
         Agrs:
-                index: the loaded VectorStoreIndex.
+                        index: the loaded VectorStoreIndex.
         """
         # llm configuration
         load_dotenv()
@@ -96,10 +104,10 @@ class QueryEngine:
         extracting retrieval metadata alongside the answer.
 
         Agrs:
-                question: the query to be answered.
+                        question: the query to be answered.
 
         Returns:
-                a dict with keys: answer, confidence, chunk_ids, latency_ms.
+                        a dict with keys: answer, confidence, chunk_ids, latency_ms.
         """
         # single dict container for entire lifecycle
         result = {
