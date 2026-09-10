@@ -11,6 +11,7 @@ dependencies = [
     "ipywidgets>=8.1.8",
     "llama-index-core>=0.14.23",
     "llama-index-embeddings-huggingface>=0.7.0",
+    "llama-index-embeddings-huggingface-api>=0.6.0",
     "llama-index-llms-huggingface-api>=0.7.0",
     "llama-index-vector-stores-faiss>=0.6.0",
     "nest-asyncio>=1.6.0",
