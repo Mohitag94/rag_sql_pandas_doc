@@ -29,8 +29,8 @@ class IndexBuilder:
     documentation .rst files.
 
     Attributes:
-                documents: Loaded Document objects, set by .load().
-                index: The built VectorStoreIndex, set by .index_build().
+            documents: Loaded Document objects, set by .load().
+            index: The built VectorStoreIndex, set by .index_build().
     """
 
     def __init__(self, embed_dim=EMBED_DIM):
@@ -39,9 +39,9 @@ class IndexBuilder:
         and chunk size before any documents are loaded or indexed.
 
         Args:
-                        embed_dim: Output dimension of the embedding model. Must match
-                        BAAI/bge-small-en-v1.5's actual output size (384) or FAISS
-                        will raise a dimension-mismatch error.
+                embed_dim: Output dimension of the embedding model. Must match
+                BAAI/bge-small-en-v1.5's actual output size (384) or FAISS
+                will raise a dimension-mismatch error.
         """
         # parent/root directory
         self.ROOT_DIR = Path(__file__).resolve().parent
@@ -63,7 +63,7 @@ class IndexBuilder:
         Load .rst documents from the disk.
 
         Returns:
-                        The list of loaded Document objects.
+                                                                        The list of loaded Document objects.
         """
 
         print("[INFO] Loading Documents...")
@@ -79,8 +79,8 @@ class IndexBuilder:
         Insert document name per row into document_metadata, recording
         what's in the corpus and time of indexing.
 
-                Raises:
-                        ValueError: If .index_build() hasn't been called yet.
+        Raises:
+                ValueError: If .index_build() hasn't been called yet.
         """
         if self.documents is None:
             raise ValueError("No documents loaded — call .load() first.")
@@ -98,11 +98,11 @@ class IndexBuilder:
             # executemany loops through the list natively at database level
             cur.executemany(
                 """
-                    INSERT INTO rag_app.document_metadata (source, category) 
-                    VALUES (%s, %s)
-                    ON CONFLICT (source)
+					INSERT INTO rag_app.document_metadata (source, category) 
+					VALUES (%s, %s)
+					ON CONFLICT (source)
 					DO UPDATE SET date_added = NOW();
-                    """,
+					""",
                 sources_payload,
             )
             conn.commit()
@@ -112,16 +112,21 @@ class IndexBuilder:
         Single VectorStoreIndex call for chuck, embedding & storage via FAISS
 
         Returns:
-                        The built VectorStoreIndex.
+                The built VectorStoreIndex.
 
         Raises:
-                        ValueError: If .load() hasn't been called yet.
+                ValueError: If .load() hasn't been called yet.
         """
 
         if self.documents is None:
             raise ValueError("No documents loaded — call .load() first.")
 
         print("[INFO] Indexing Documents...")
+        # from llama_index.core.node_parser import SentenceSplitter
+        # text_splitter = SentenceSplitter(
+        #     chunk_size=450,
+        #     chunk_overlap=50
+        # )
         faiss_index = faiss.IndexFlatL2(self.embed_dim)
         vector_store = FaissVectorStore(faiss_index=faiss_index)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
@@ -138,7 +143,7 @@ class IndexBuilder:
         Save the built index to disk so it doesn't need rebuilding every run
 
         Raises:
-                        ValueError: If .index_build() hasn't been called yet.
+                ValueError: If .index_build() hasn't been called yet.
         """
         if self.index is None:
             raise ValueError("No index built — call .build_index() first.")
