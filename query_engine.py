@@ -6,7 +6,7 @@ log every query to the Neon query_log table.
                 (question, retrieved chunk ids, confidence, latency, error)
 """
 
-# loading requires packages...
+# load requires packages...
 import os
 import time
 from pathlib import Path

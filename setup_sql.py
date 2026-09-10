@@ -1,5 +1,6 @@
 """One-time script: create the SQL schema and tables in Neon."""
 
+# load requires packages...
 import os
 
 import psycopg
