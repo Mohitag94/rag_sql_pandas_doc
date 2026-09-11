@@ -17,6 +17,9 @@ dependencies = [
     "nest-asyncio>=1.6.0",
     "psycopg[binary]>=3.3.4",
     "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "streamlit>=1.63.0",
     "transformers>=5.14.1",
     "uvicorn[standard]>=0.52.4",
+    "watchdog>=6.0.0",
 ]

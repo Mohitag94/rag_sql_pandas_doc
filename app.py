@@ -112,4 +112,4 @@ async def handle_request(payload: QueryRequest, background_task: BackgroundTasks
 
     background_task.add_task(query_logger, result)
     background_task.add_task(evaluation)
-    return {"answer": result["answer"]}
+    return {"answer": result["answer"], "confidence_score": result["confidence_score"]}
