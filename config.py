@@ -73,6 +73,6 @@ def config_llm(hf_token):
         model_name=LLM_MODEL_NAME,
         token=hf_token,
         temperature=0.2,
-        max_tokens=256,
+        max_tokens=1024,
         provider="auto",
     )
