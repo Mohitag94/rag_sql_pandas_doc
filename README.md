@@ -58,7 +58,7 @@ query_engine.py     # IndexLoader + QueryEngine — load persisted index, answer
 db_logger.py        # all Postgres access: query_log, eval_results, document_metadata
 eval_batch.py       # BatchEvaluator — faithfulness/relevancy eval on un-evaluated logged queries
 app.py              # FastAPI: /ask, /health — orchestrates the above, background logging + eval
-streamlit_app.py    # UI, calls the deployed FastAPI backend
+app_ui.py           # UI, calls the deployed FastAPI backend
 Dockerfile
 Data/               # curated pandas .rst files
 Storage/            # persisted FAISS index (gitignored, regenerable)
