@@ -40,6 +40,12 @@ Doc originally proposed Gradio or Swagger-only. Switched to **Streamlit** instea
 
 Feature built: last 5 questions + answers + confidence scores, shown via `st.session_state` (this browser session only, not shared across users — deliberately, for privacy, since not everyone wants their questions visible to others).
 
+**Deployed to Streamlit Community Cloud** — connects directly from the GitHub repo, no card or separate secrets required, since `streamlit_app.py` holds no credentials itself (it only calls the already-deployed Cloud Run backend over HTTP).
+
+### Final live URLs
+- API (Google Cloud Run, project `rag-pandas-api-mka`): `https://pandas-rag-api-mka-576093593374.us-central1.run.app`
+- UI (Streamlit Community Cloud): `https://ragsqlpandasdoc-b8vkwfdskpsezxqsmahpe4.streamlit.app/`
+
 ---
 
 ## 3. Schema note
